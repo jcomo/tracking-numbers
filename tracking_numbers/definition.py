@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+from typing import List
 from typing import Optional
 from typing import Pattern
 
@@ -10,6 +12,24 @@ from tracking_numbers.types import Courier
 from tracking_numbers.types import Product
 from tracking_numbers.types import Spec
 from tracking_numbers.types import TrackingNumber
+from tracking_numbers.value_matcher import ValueMatcher
+
+
+@dataclass
+class AdditionalValidation:
+    regex_group_name: str
+    value_matchers: List[ValueMatcher]
+
+    @classmethod
+    def from_spec(cls, spec: Spec) -> "AdditionalValidation":
+        value_matchers: List[ValueMatcher] = []
+        for value_matcher_spec in spec["lookup"]:
+            value_matchers.append(ValueMatcher.from_spec(value_matcher_spec))
+
+        return AdditionalValidation(
+            regex_group_name=spec["regex_group_name"],
+            value_matchers=value_matchers,
+        )
 
 
 class TrackingNumberDefinition:
@@ -19,6 +39,7 @@ class TrackingNumberDefinition:
     tracking_url_template: Optional[str]
     serial_number_parser: SerialNumberParser
     checksum_validator: ChecksumValidator
+    additional_validations: Optional[List[AdditionalValidation]]
 
     def __init__(
         self,
@@ -28,6 +49,7 @@ class TrackingNumberDefinition:
         tracking_url_template: Optional[str],
         serial_number_parser: SerialNumberParser,
         checksum_validator: ChecksumValidator,
+        additional_validations: List[AdditionalValidation],
     ):
         self.courier = courier
         self.product = product
@@ -35,6 +57,7 @@ class TrackingNumberDefinition:
         self.tracking_url_template = tracking_url_template
         self.serial_number_parser = serial_number_parser
         self.checksum_validator = checksum_validator
+        self.additional_validations = additional_validations
 
     def __repr__(self):
         return (
@@ -44,7 +67,8 @@ class TrackingNumberDefinition:
             f"number_regex=re.compile({repr(self.number_regex.pattern)}), "
             f"tracking_url_template={repr(self.tracking_url_template)}, "
             f"serial_number_parser={repr(self.serial_number_parser)}, "
-            f"checksum_validator={repr(self.checksum_validator)}"
+            f"checksum_validator={repr(self.checksum_validator)}, "
+            f"additional_validations={self.additional_validations}"
             f")"
         )
 
@@ -60,13 +84,21 @@ class TrackingNumberDefinition:
             else DefaultSerialNumberParser.from_spec(validation_spec)
         )
 
+        additional_spec = tn_spec.get("additional")
+        additional_validations: List[AdditionalValidation] = []
+        if isinstance(additional_spec, list):
+            # Handles None and 1 that is a dict (seems like old format / mistake)
+            for spec in additional_spec:
+                additional_validations.append(AdditionalValidation.from_spec(spec))
+
         return TrackingNumberDefinition(
+            courier=courier,
+            product=Product(name=tn_spec["name"]),
             number_regex=number_regex,
             tracking_url_template=tracking_url_template,
-            checksum_validator=ChecksumValidator.from_spec(validation_spec),
             serial_number_parser=serial_number_parser,
-            product=Product(name=tn_spec["name"]),
-            courier=courier,
+            checksum_validator=ChecksumValidator.from_spec(validation_spec),
+            additional_validations=additional_validations,
         )
 
     def test(self, tracking_number: str) -> Optional[TrackingNumber]:

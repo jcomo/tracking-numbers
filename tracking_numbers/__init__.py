@@ -1,11 +1,15 @@
 __version__ = "0.1.0"
 
+import os
 from typing import Optional
 
 from tracking_numbers.definition import TrackingNumberDefinition
 from tracking_numbers.types import TrackingNumber
-from tracking_numbers.utils import iter_courier_specs, iter_definitions
-from tracking_numbers._generated import DEFINITIONS
+
+if not os.environ.get("CODE_GENERATING"):
+    from tracking_numbers._generated import DEFINITIONS
+else:
+    DEFINITIONS = []
 
 
 def get_tracking_number(number: str) -> Optional[TrackingNumber]:

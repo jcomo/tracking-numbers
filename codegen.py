@@ -1,5 +1,10 @@
-from tracking_numbers import iter_courier_specs
-from tracking_numbers import iter_definitions
+import os
+
+os.environ["CODE_GENERATING"] = "true"
+
+from tracking_numbers.spec_helpers import iter_courier_specs  # noqa:E402
+from tracking_numbers.spec_helpers import iter_definitions  # noqa:E402
+
 
 import_statements = [
     "import re",
@@ -9,12 +14,15 @@ import_statements = [
     "from tracking_numbers.checksum_validator import NoChecksum",
     "from tracking_numbers.checksum_validator import S10",
     "from tracking_numbers.checksum_validator import SumProductWithWeightsAndModulo",
+    "from tracking_numbers.definition import AdditionalValidation",
     "from tracking_numbers.definition import TrackingNumberDefinition",
     "from tracking_numbers.serial_number import DefaultSerialNumberParser",
     "from tracking_numbers.serial_number import PrependIf",
     "from tracking_numbers.serial_number import UPSSerialNumberParser",
     "from tracking_numbers.types import Courier",
     "from tracking_numbers.types import Product",
+    "from tracking_numbers.value_matcher import ExactValueMatcher",
+    "from tracking_numbers.value_matcher import RegexValueMatcher",
 ]
 
 
