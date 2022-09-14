@@ -19,3 +19,11 @@ def get_tracking_number(number: str) -> Optional[TrackingNumber]:
             return tracking_number
 
     return None
+
+
+def get_definition(product_name: str) -> Optional[TrackingNumberDefinition]:
+    for tn_definition in DEFINITIONS:
+        if tn_definition.product.name.lower() == product_name.lower():
+            return tn_definition
+
+    return None
