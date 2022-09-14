@@ -231,12 +231,12 @@ class TrackingNumberDefinition:
 
         match_data = match.groupdict() if match else {}
         serial_number = self.serial_number_parser.parse(
-            match_data["SerialNumber"],
+            "".join(ch for ch in match_data["SerialNumber"] if ch.strip()),
         )
 
         passes_validation = self.checksum_validator.passes(
             serial_number=serial_number,
-            check_digit=int(match_data["CheckDigit"]),
+            check_digit=int(match_data.get("CheckDigit", 0)),
         )
 
         return TrackingNumber(
@@ -265,58 +265,110 @@ def _parse_regex(raw_regex: Union[str, List[str]]) -> Pattern:
     return _pcre_to_python_re(raw_regex)
 
 
-def _parse_definitions(data: Dict[str, Any]) -> List[TrackingNumberDefinition]:
+def load_definition(
+    courier: Courier,
+    tn_spec: Dict[str, Any],
+) -> TrackingNumberDefinition:
+    tracking_url_template = tn_spec.get("tracking_url")
+    number_regex = _parse_regex(tn_spec["regex"])
+
+    validation_spec = tn_spec["validation"]
+    serial_number_parser = (
+        UPSSerialNumberParser()
+        if courier.code == "ups"
+        else DefaultSerialNumberParser.from_spec(validation_spec)
+    )
+
+    return TrackingNumberDefinition(
+        number_regex=number_regex,
+        tracking_url_template=tracking_url_template,
+        checksum_validator=ChecksumValidator.from_spec(validation_spec),
+        serial_number_parser=serial_number_parser,
+        product=Product(name=tn_spec["name"]),
+        courier=courier,
+    )
+
+
+def iter_definitions(courier_spec: Dict[str, Any]):
+    courier = Courier(
+        name=courier_spec["name"],
+        code=courier_spec["courier_code"],
+    )
+
+    for tn_spec in courier_spec["tracking_numbers"]:
+        definition = load_definition(courier, tn_spec)
+        yield courier, definition, tn_spec
+
+
+def load_definitions(courier_spec: Dict[str, Any]) -> List[TrackingNumberDefinition]:
     definitions: List[TrackingNumberDefinition] = []
-    for tn_data in data["tracking_numbers"]:
-        tracking_url_template = tn_data.get("tracking_url")
-        number_regex = _parse_regex(tn_data["regex"])
-
-        validation_spec = tn_data["validation"]
-        serial_number_parser = (
-            UPSSerialNumberParser()
-            if data["courier_code"] == "ups"
-            else DefaultSerialNumberParser.from_spec(validation_spec)
-        )
-
-        definitions.append(
-            TrackingNumberDefinition(
-                number_regex=number_regex,
-                tracking_url_template=tracking_url_template,
-                checksum_validator=ChecksumValidator.from_spec(validation_spec),
-                serial_number_parser=serial_number_parser,
-                product=Product(name=tn_data["name"]),
-                courier=Courier(
-                    name=data["name"],
-                    code=data["courier_code"],
-                ),
-            ),
-        )
+    for _, definition, _ in iter_definitions(courier_spec):
+        definitions.append(definition)
 
     return definitions
 
 
-def load_definitions(base_dir: str) -> List[TrackingNumberDefinition]:
-    definitions: List[TrackingNumberDefinition] = []
+def iter_courier_specs(base_dir: str = "tracking_number_data/couriers"):
     for filename in listdir(base_dir):
         path = os.path.join(base_dir, filename)
         with open(path) as f:
-            data = json.load(f)
-            definitions_from_file = _parse_definitions(data)
-            definitions.extend(definitions_from_file)
+            yield json.load(f)
 
-    return definitions
+
+def _run_test(definition: TrackingNumberDefinition, number: str) -> TrackingNumber:
+    pass
+
+
+def run_all_tests():
+    for courier_spec in iter_courier_specs():
+        for courier, definition, tn_spec in iter_definitions(courier_spec):
+            test_numbers = tn_spec.get("test_numbers")
+            if not test_numbers:
+                continue
+
+            valid_numbers = test_numbers.get("valid", [])
+            for number in valid_numbers:
+                try:
+                    tracking_number = definition.test(number)
+                except Exception as e:
+                    print(f"[🤬] expected valid: {number}, got error: {e}")
+                    continue
+
+                if not tracking_number:
+                    print(f"[❌] expected valid, but did not detect number: {number}")
+                    continue
+
+                if tracking_number.is_valid:
+                    print(f"[✅] {courier.code} - {number} (valid)")
+                else:
+                    print(f"[❌] expected valid: {number}, but was invalid")
+
+            invalid_numbers = test_numbers.get("invalid", [])
+            for number in invalid_numbers:
+                try:
+                    tracking_number = definition.test(number)
+                except Exception as e:
+                    print(f"[🤬] expected valid: {number}, got error: {e}")
+                    continue
+
+                if not tracking_number:
+                    print(f"[✅] {courier.code} - {number} (not detected)")
+                    continue
+
+                if not tracking_number.is_valid:
+                    print(f"[✅] {courier.code} - {number} (invalid)")
+                else:
+                    print(f"[❌] expected invalid: {number}, but was valid")
 
 
 def main():
     raw_tracking_number = argv[1]
-    definitions = load_definitions("tracking_number_data/couriers")
-    for definition in definitions:
-        tracking_number = definition.test(raw_tracking_number)
-        if tracking_number:
-            print(tracking_number)
-            # print(definition.serial_number_parser.parse(tracking_number))
-            # print(definition.tracking_url(tracking_number))
+    for courier_spec in iter_courier_specs():
+        for definition in load_definitions(courier_spec):
+            tracking_number = definition.test(raw_tracking_number)
+            if tracking_number:
+                print(tracking_number)
 
 
 if __name__ == "__main__":
-    main()
+    run_all_tests()
