@@ -5,13 +5,17 @@ from dataclasses import dataclass
 from os import listdir
 from re import Pattern
 from sys import argv
-from typing import List, Optional, Union, Dict, Any
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Union
 
 SerialNumber = List[int]
 
 
 def to_int(serial_number: SerialNumber) -> int:
-    return int(''.join(map(str, serial_number)))
+    return int("".join(map(str, serial_number)))
 
 
 @dataclass
@@ -54,18 +58,18 @@ class DefaultSerialNumberParser(SerialNumberParser):
         return [int(digit) for digit in number]
 
     @classmethod
-    def from_spec(cls, validation_spec: Dict[str, Any]) -> 'SerialNumberParser':
-        serial_number_format = validation_spec.get('serial_number_format')
+    def from_spec(cls, validation_spec: Dict[str, Any]) -> "SerialNumberParser":
+        serial_number_format = validation_spec.get("serial_number_format")
         if not serial_number_format:
             return DefaultSerialNumberParser()
 
-        prepend_if_spec = serial_number_format.get('prepend_if')
+        prepend_if_spec = serial_number_format.get("prepend_if")
         if not prepend_if_spec:
             return DefaultSerialNumberParser()
 
         prepend_if = PrependIf(
-            matches_regex=_pcre_to_python_re(prepend_if_spec['matches_regex']),
-            content=prepend_if_spec['content'],
+            matches_regex=_pcre_to_python_re(prepend_if_spec["matches_regex"]),
+            content=prepend_if_spec["content"],
         )
 
         return DefaultSerialNumberParser(prepend_if)
@@ -98,29 +102,29 @@ class ChecksumValidator:
         raise NotImplementedError
 
     @classmethod
-    def from_spec(cls, validation_spec: Dict[str, Any]) -> 'ChecksumValidator':
-        checksum_spec = validation_spec.get('checksum')
+    def from_spec(cls, validation_spec: Dict[str, Any]) -> "ChecksumValidator":
+        checksum_spec = validation_spec.get("checksum")
         if not checksum_spec:
             return NoChecksum()
 
-        strategy = checksum_spec.get('name')
-        if strategy == 's10':
+        strategy = checksum_spec.get("name")
+        if strategy == "s10":
             return S10()
-        elif strategy == 'mod7':
+        elif strategy == "mod7":
             return Mod7()
-        elif strategy == 'mod10':
+        elif strategy == "mod10":
             return Mod10(
-                odds_multiplier=checksum_spec.get('odds_multiplier'),
-                evens_multiplier=checksum_spec.get('evens_multiplier'),
+                odds_multiplier=checksum_spec.get("odds_multiplier"),
+                evens_multiplier=checksum_spec.get("evens_multiplier"),
             )
-        elif strategy == 'sum_product_with_weightings_and_modulo':
+        elif strategy == "sum_product_with_weightings_and_modulo":
             return SumProductWithWeightsAndModulo(
-                weights=checksum_spec['weightings'],
-                first_modulo=checksum_spec['modulo1'],
-                second_modulo=checksum_spec['modulo2'],
+                weights=checksum_spec["weightings"],
+                first_modulo=checksum_spec["modulo1"],
+                second_modulo=checksum_spec["modulo2"],
             )
 
-        raise ValueError(f'Unknown checksum: {strategy}')
+        raise ValueError(f"Unknown checksum: {strategy}")
 
 
 class NoChecksum(ChecksumValidator):
@@ -227,12 +231,12 @@ class TrackingNumberDefinition:
 
         match_data = match.groupdict() if match else {}
         serial_number = self.serial_number_parser.parse(
-            match_data['SerialNumber'],
+            match_data["SerialNumber"],
         )
 
         passes_validation = self.checksum_validator.passes(
             serial_number=serial_number,
-            check_digit=int(match_data['CheckDigit']),
+            check_digit=int(match_data["CheckDigit"]),
         )
 
         return TrackingNumber(
@@ -251,26 +255,26 @@ class TrackingNumberDefinition:
 
 
 def _pcre_to_python_re(regex: str) -> Pattern:
-    return re.compile(regex.replace('(?<', '(?P<'))
+    return re.compile(regex.replace("(?<", "(?P<"))
 
 
 def _parse_regex(raw_regex: Union[str, List[str]]) -> Pattern:
     if isinstance(raw_regex, list):
-        raw_regex = ''.join(raw_regex)
+        raw_regex = "".join(raw_regex)
 
     return _pcre_to_python_re(raw_regex)
 
 
 def _parse_definitions(data: Dict[str, Any]) -> List[TrackingNumberDefinition]:
     definitions: List[TrackingNumberDefinition] = []
-    for tn_data in data['tracking_numbers']:
-        tracking_url_template = tn_data.get('tracking_url')
-        number_regex = _parse_regex(tn_data['regex'])
+    for tn_data in data["tracking_numbers"]:
+        tracking_url_template = tn_data.get("tracking_url")
+        number_regex = _parse_regex(tn_data["regex"])
 
-        validation_spec = tn_data['validation']
+        validation_spec = tn_data["validation"]
         serial_number_parser = (
             UPSSerialNumberParser()
-            if data['courier_code'] == 'ups'
+            if data["courier_code"] == "ups"
             else DefaultSerialNumberParser.from_spec(validation_spec)
         )
 
@@ -280,12 +284,12 @@ def _parse_definitions(data: Dict[str, Any]) -> List[TrackingNumberDefinition]:
                 tracking_url_template=tracking_url_template,
                 checksum_validator=ChecksumValidator.from_spec(validation_spec),
                 serial_number_parser=serial_number_parser,
-                product=Product(name=tn_data['name']),
+                product=Product(name=tn_data["name"]),
                 courier=Courier(
-                    name=data['name'],
-                    code=data['courier_code'],
+                    name=data["name"],
+                    code=data["courier_code"],
                 ),
-            )
+            ),
         )
 
     return definitions
@@ -305,7 +309,7 @@ def load_definitions(base_dir: str) -> List[TrackingNumberDefinition]:
 
 def main():
     raw_tracking_number = argv[1]
-    definitions = load_definitions('tracking_number_data/couriers')
+    definitions = load_definitions("tracking_number_data/couriers")
     for definition in definitions:
         tracking_number = definition.test(raw_tracking_number)
         if tracking_number:
@@ -314,5 +318,5 @@ def main():
             # print(definition.tracking_url(tracking_number))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
