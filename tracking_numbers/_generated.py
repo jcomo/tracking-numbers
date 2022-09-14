@@ -3,7 +3,6 @@ import re
 
 from tracking_numbers.checksum_validator import Mod10
 from tracking_numbers.checksum_validator import Mod7
-from tracking_numbers.checksum_validator import NoChecksum
 from tracking_numbers.checksum_validator import S10
 from tracking_numbers.checksum_validator import SumProductWithWeightsAndModulo
 from tracking_numbers.definition import AdditionalValidation
@@ -48,7 +47,7 @@ DEFINITIONS = [
         ),
         tracking_url_template=None,
         serial_number_parser=DefaultSerialNumberParser(prepend_if=None),
-        checksum_validator=NoChecksum(),
+        checksum_validator=None,
         additional_validations=[],
     ),
     TrackingNumberDefinition(

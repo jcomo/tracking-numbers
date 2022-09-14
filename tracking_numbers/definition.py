@@ -63,7 +63,7 @@ class TrackingNumberDefinition:
     number_regex: Pattern
     tracking_url_template: Optional[str]
     serial_number_parser: SerialNumberParser
-    checksum_validator: ChecksumValidator
+    checksum_validator: Optional[ChecksumValidator]
     additional_validations: List[AdditionalValidation]
 
     def __init__(
@@ -73,7 +73,7 @@ class TrackingNumberDefinition:
         number_regex: Pattern,
         tracking_url_template: Optional[str],
         serial_number_parser: SerialNumberParser,
-        checksum_validator: ChecksumValidator,
+        checksum_validator: Optional[ChecksumValidator],
         additional_validations: List[AdditionalValidation],
     ):
         self.courier = courier
@@ -157,9 +157,16 @@ class TrackingNumberDefinition:
         serial_number: SerialNumber,
         match_data: MatchData,
     ) -> bool:
+        if not self.checksum_validator:
+            return True
+
+        check_digit = match_data.get("CheckDigit")
+        if not check_digit:
+            return False
+
         return self.checksum_validator.passes(
             serial_number=serial_number,
-            check_digit=int(match_data.get("CheckDigit", 0)),
+            check_digit=int(check_digit),
         )
 
     def _passes_additional_validation(self, match_data: MatchData) -> bool:

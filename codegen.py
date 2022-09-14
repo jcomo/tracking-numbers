@@ -11,7 +11,6 @@ import_statements = [
     "",
     "from tracking_numbers.checksum_validator import Mod10",
     "from tracking_numbers.checksum_validator import Mod7",
-    "from tracking_numbers.checksum_validator import NoChecksum",
     "from tracking_numbers.checksum_validator import S10",
     "from tracking_numbers.checksum_validator import SumProductWithWeightsAndModulo",
     "from tracking_numbers.definition import AdditionalValidation",

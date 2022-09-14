@@ -17,10 +17,10 @@ class ChecksumValidator(metaclass=ABCMeta):
         raise NotImplementedError
 
     @classmethod
-    def from_spec(cls, validation_spec: Spec) -> "ChecksumValidator":
+    def from_spec(cls, validation_spec: Spec) -> Optional["ChecksumValidator"]:
         checksum_spec = validation_spec.get("checksum")
         if not checksum_spec:
-            return NoChecksum()
+            return None
 
         strategy = checksum_spec.get("name")
         if strategy == "s10":
@@ -40,11 +40,6 @@ class ChecksumValidator(metaclass=ABCMeta):
             )
 
         raise ValueError(f"Unknown checksum: {strategy}")
-
-
-class NoChecksum(ChecksumValidator):
-    def passes(self, serial_number: SerialNumber, check_digit: int) -> bool:
-        return True
 
 
 class S10(ChecksumValidator):
