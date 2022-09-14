@@ -64,6 +64,7 @@ DEFINITIONS = [
             AdditionalValidation(
                 regex_group_name="ServiceType",
                 value_matchers=[
+                    ExactValueMatcher(value="03"),
                     ExactValueMatcher(value="71"),
                     ExactValueMatcher(value="73"),
                     ExactValueMatcher(value="77"),
