@@ -21,11 +21,12 @@ class Courier:
 
 @dataclass
 class TrackingNumber:
+    valid: bool
+    number: str
+    serial_number: SerialNumber
+    tracking_url: Optional[str]
     courier: Courier
     product: Product
-    tracking_url: Optional[str]
-    serial_number: SerialNumber
-    is_valid: bool
 
 
 def to_int(serial_number: SerialNumber) -> int:

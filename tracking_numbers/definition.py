@@ -85,11 +85,12 @@ class TrackingNumberDefinition:
         )
 
         return TrackingNumber(
+            valid=passes_validation,
+            number=tracking_number,
+            serial_number=serial_number,
+            tracking_url=self.tracking_url(tracking_number),
             courier=self.courier,
             product=self.product,
-            tracking_url=self.tracking_url(tracking_number),
-            serial_number=serial_number,
-            is_valid=passes_validation,
         )
 
     def tracking_url(self, tracking_number: str) -> Optional[str]:

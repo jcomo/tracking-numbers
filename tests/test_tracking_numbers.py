@@ -29,7 +29,7 @@ def test_tracking_numbers(definition, number, expected_valid):
     tracking_number = definition.test(number)
     if not tracking_number:
         assert not expected_valid, "Expected valid tracking number, but wasn't detected"
-    elif not tracking_number.is_valid:
+    elif not tracking_number.valid:
         assert not expected_valid, "Expected valid tracking number, but was invalid"
-    elif tracking_number.is_valid:
+    elif tracking_number.valid:
         assert expected_valid, "Expected invalid tracking number, but was valid"
