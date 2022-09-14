@@ -23,6 +23,9 @@ class PrependIf:
 
 
 class SerialNumberParser(metaclass=ABCMeta):
+    def __repr__(self):
+        return f"{self.__class__.__name__}()"
+
     @abstractmethod
     def parse(self, number: str) -> SerialNumber:
         raise NotImplementedError
@@ -31,6 +34,9 @@ class SerialNumberParser(metaclass=ABCMeta):
 class DefaultSerialNumberParser(SerialNumberParser):
     def __init__(self, prepend_if: Optional[PrependIf] = None):
         self.prepend_if = prepend_if
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}(prepend_if={self.prepend_if})"
 
     def parse(self, number: str) -> SerialNumber:
         if self.prepend_if:
@@ -57,6 +63,9 @@ class DefaultSerialNumberParser(SerialNumberParser):
 
 
 class UPSSerialNumberParser(SerialNumberParser):
+    def __repr__(self):
+        return f"{self.__class__.__name__}()"
+
     def parse(self, number: str) -> SerialNumber:
         return [self._value_of(ch) for ch in number]
 

@@ -36,6 +36,18 @@ class TrackingNumberDefinition:
         self.serial_number_parser = serial_number_parser
         self.checksum_validator = checksum_validator
 
+    def __repr__(self):
+        return (
+            f"{self.__class__.__name__}("
+            f"courier={self.courier}, "
+            f"product={self.product}, "
+            f"number_regex=re.compile({repr(self.number_regex.pattern)}), "
+            f"tracking_url_template={repr(self.tracking_url_template)}, "
+            f"serial_number_parser={repr(self.serial_number_parser)}, "
+            f"checksum_validator={repr(self.checksum_validator)}"
+            f")"
+        )
+
     @classmethod
     def from_spec(cls, courier: Courier, tn_spec: Spec) -> "TrackingNumberDefinition":
         tracking_url_template = tn_spec.get("tracking_url")

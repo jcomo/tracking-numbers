@@ -9,6 +9,9 @@ from tracking_numbers.types import to_int
 
 
 class ChecksumValidator(metaclass=ABCMeta):
+    def __repr__(self):
+        return f"{self.__class__.__name__}()"
+
     @abstractmethod
     def passes(self, serial_number: SerialNumber, check_digit: int) -> bool:
         raise NotImplementedError
@@ -72,6 +75,14 @@ class Mod10(ChecksumValidator):
         self.odds_multiplier = odds_multiplier
         self.evens_multiplier = evens_multiplier
 
+    def __repr__(self):
+        return (
+            f"{self.__class__.__name__}("
+            f"odds_multiplier={self.odds_multiplier}, "
+            f"evens_multiplier={self.evens_multiplier}"
+            f")"
+        )
+
     def passes(self, serial_number: SerialNumber, check_digit: int) -> bool:
         total = 0
         for index, digit in enumerate(serial_number):
@@ -102,6 +113,15 @@ class SumProductWithWeightsAndModulo(ChecksumValidator):
         self.weights = weights
         self.first_modulo = first_modulo
         self.second_modulo = second_modulo
+
+    def __repr__(self):
+        return (
+            f"{self.__class__.__name__}("
+            f"weights={self.weights}, "
+            f"first_modulo={self.first_modulo}, "
+            f"second_modulo={self.second_modulo}"
+            f")"
+        )
 
     def passes(self, serial_number: SerialNumber, check_digit: int) -> bool:
         total = 0
