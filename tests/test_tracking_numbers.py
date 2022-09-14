@@ -1,6 +1,9 @@
-from examine import iter_courier_specs
-from examine import iter_definitions
-from examine import TrackingNumberDefinition
+from typing import List
+
+from tracking_numbers import TrackingNumberDefinition
+from tracking_numbers.utils import iter_courier_specs
+from tracking_numbers.utils import iter_test_cases
+from tracking_numbers.utils import TestCase
 
 
 def id_func(val):
@@ -10,20 +13,10 @@ def id_func(val):
 
 
 def pytest_generate_tests(metafunc):
-    test_cases = []
+    test_cases: List[TestCase] = []
     for courier_spec in iter_courier_specs():
-        for courier, definition, tn_spec in iter_definitions(courier_spec):
-            test_numbers = tn_spec.get("test_numbers")
-            if not test_numbers:
-                continue
-
-            valid_numbers = test_numbers.get("valid", [])
-            for valid_number in valid_numbers:
-                test_cases.append((definition, valid_number, True))
-
-            invalid_numbers = test_numbers.get("invalid", [])
-            for invalid_number in invalid_numbers:
-                test_cases.append((definition, invalid_number, False))
+        for test_case in iter_test_cases(courier_spec):
+            test_cases.append(test_case)
 
     metafunc.parametrize(
         argnames=["definition", "number", "expected_valid"],
