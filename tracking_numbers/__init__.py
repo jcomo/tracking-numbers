@@ -18,7 +18,7 @@ else:
 def get_tracking_number(number: str) -> Optional[TrackingNumber]:
     for tn_definition in DEFINITIONS:
         tracking_number = tn_definition.test(number)
-        if tracking_number:
+        if tracking_number and tracking_number.valid:
             return tracking_number
 
     return None
