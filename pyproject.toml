@@ -1,8 +1,12 @@
 [tool.poetry]
 name = "tracking-numbers"
-version = "0.1.0"
-description = ""
-authors = ["Jonathan Como <jonathan.como@gmail.com>"]
+version = "0.1.1"
+description = "Parse tracking numbers from couriers with no external dependencies"
+authors = ["Jonathan Como <public@jcomo.me>"]
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/jcomo/tracking-numbers"
+keywords = ["tracking", "tracking numbers", "courier", "shipping"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
