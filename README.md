@@ -4,6 +4,7 @@
 
 - [tracking-numbers](#tracking-numbers)
   - [Why?](#why)
+  - [Installation](#installation)
   - [Usage](#usage)
     - [`get_tracking_number(number)`](#get_tracking_numbernumber)
     - [`get_definition(product_name)`](#get_definitionproduct_name)
@@ -26,6 +27,14 @@ Instead of hand-rolling parsing code for all of these cases, the author of [`tra
 This library uses that data to code-generate definitions to create python bindings for parsing tracking numbers.
 
 The library itself has no external dependencies, and can be used to decode basic tracking data without the need of an API or external data source at runtime.
+
+## Installation
+
+Install the tracking-numbers library using pypi
+
+```sh
+pip install tracking-numbers
+```
 
 ## Usage
 
