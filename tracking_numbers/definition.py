@@ -6,6 +6,7 @@ from typing import Pattern
 
 from tracking_numbers.checksum_validator import ChecksumValidator
 from tracking_numbers.compat import parse_regex
+from tracking_numbers.helpers.repr import repr_with_args
 from tracking_numbers.serial_number import DefaultSerialNumberParser
 from tracking_numbers.serial_number import SerialNumberParser
 from tracking_numbers.serial_number import UPSSerialNumberParser
@@ -19,34 +20,13 @@ from tracking_numbers.value_matcher import ValueMatcher
 MatchData = Dict[str, str]
 
 
-def _apply_usps_20_validation_hack(product: Product, spec: Spec):
-    """Applies a hack to the usps courier data to include "03" as a service type.
-    There are numbers marked as valid that have this service type, but it is not
-    listed in the additional validation config.
-
-    Since it is not clear if the test data is a mistake, or the validation section
-    is a mistake, we apply this hack so that our test cases pass (and potentially
-    cases in the wild).
-
-    Waiting for the resolution on this Github issue:
-    https://github.com/jkeen/tracking_number_data/issues/43
-    """
-    if product.name == "USPS 20":
-        regex_group_name = spec["regex_group_name"]
-        if regex_group_name == "ServiceType":
-            unknown_service_type = {"matches": "03", "name": "unknown"}
-            spec["lookup"].insert(0, unknown_service_type)
-
-
 @dataclass
 class AdditionalValidation:
     regex_group_name: str
     value_matchers: List[ValueMatcher]
 
     @classmethod
-    def from_spec(cls, product: Product, spec: Spec) -> "AdditionalValidation":
-        _apply_usps_20_validation_hack(product, spec)
-
+    def from_spec(cls, spec: Spec) -> "AdditionalValidation":
         value_matchers: List[ValueMatcher] = []
         for value_matcher_spec in spec["lookup"]:
             value_matchers.append(ValueMatcher.from_spec(value_matcher_spec))
@@ -85,16 +65,15 @@ class TrackingNumberDefinition:
         self.additional_validations = additional_validations
 
     def __repr__(self):
-        return (
-            f"{self.__class__.__name__}("
-            f"courier={self.courier}, "
-            f"product={self.product}, "
-            f"number_regex=re.compile({repr(self.number_regex.pattern)}), "
-            f"tracking_url_template={repr(self.tracking_url_template)}, "
-            f"serial_number_parser={repr(self.serial_number_parser)}, "
-            f"checksum_validator={repr(self.checksum_validator)}, "
-            f"additional_validations={self.additional_validations}"
-            f")"
+        return repr_with_args(
+            self,
+            courier=self.courier,
+            product=self.product,
+            number_regex=self.number_regex,
+            tracking_url_template=self.tracking_url_template,
+            serial_number_parser=self.serial_number_parser,
+            checksum_validator=self.checksum_validator,
+            additional_validations=self.additional_validations,
         )
 
     @classmethod
@@ -115,9 +94,7 @@ class TrackingNumberDefinition:
         if isinstance(additional_spec, list):
             # Handles None and 1 that is a dict (seems like old format / mistake)
             for spec in additional_spec:
-                additional_validations.append(
-                    AdditionalValidation.from_spec(product, spec),
-                )
+                additional_validations.append(AdditionalValidation.from_spec(spec))
 
         return TrackingNumberDefinition(
             courier=courier,

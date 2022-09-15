@@ -1,9 +1,9 @@
 from typing import List
 
 from tracking_numbers import TrackingNumberDefinition
-from tracking_numbers.spec_helpers import iter_courier_specs
-from tracking_numbers.spec_helpers import iter_test_cases
-from tracking_numbers.spec_helpers import TestCase
+from tracking_numbers.helpers.spec import iter_courier_specs
+from tracking_numbers.helpers.spec import iter_test_cases
+from tracking_numbers.helpers.spec import TestCase
 
 
 def id_func(val):

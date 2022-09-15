@@ -3,6 +3,7 @@ from abc import abstractmethod
 from typing import List
 from typing import Optional
 
+from tracking_numbers.helpers.repr import repr_with_args
 from tracking_numbers.types import SerialNumber
 from tracking_numbers.types import Spec
 from tracking_numbers.types import to_int
@@ -10,7 +11,7 @@ from tracking_numbers.types import to_int
 
 class ChecksumValidator(metaclass=ABCMeta):
     def __repr__(self):
-        return f"{self.__class__.__name__}()"
+        return repr_with_args(self)
 
     @abstractmethod
     def passes(self, serial_number: SerialNumber, check_digit: int) -> bool:
@@ -71,11 +72,10 @@ class Mod10(ChecksumValidator):
         self.evens_multiplier = evens_multiplier
 
     def __repr__(self):
-        return (
-            f"{self.__class__.__name__}("
-            f"odds_multiplier={self.odds_multiplier}, "
-            f"evens_multiplier={self.evens_multiplier}"
-            f")"
+        return repr_with_args(
+            self,
+            odds_multiplier=self.odds_multiplier,
+            evens_multiplier=self.evens_multiplier,
         )
 
     def passes(self, serial_number: SerialNumber, check_digit: int) -> bool:
@@ -110,12 +110,11 @@ class SumProductWithWeightsAndModulo(ChecksumValidator):
         self.second_modulo = second_modulo
 
     def __repr__(self):
-        return (
-            f"{self.__class__.__name__}("
-            f"weights={self.weights}, "
-            f"first_modulo={self.first_modulo}, "
-            f"second_modulo={self.second_modulo}"
-            f")"
+        return repr_with_args(
+            self,
+            weights=self.weights,
+            first_modulo=self.first_modulo,
+            second_modulo=self.second_modulo,
         )
 
     def passes(self, serial_number: SerialNumber, check_digit: int) -> bool:

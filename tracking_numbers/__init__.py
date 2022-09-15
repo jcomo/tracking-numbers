@@ -9,6 +9,9 @@ from tracking_numbers.types import TrackingNumber
 if not os.environ.get("CODE_GENERATING"):
     from tracking_numbers._generated import DEFINITIONS
 else:
+    # When running codegen, it's very possible that the items in
+    # DEFINITIONS are out of date / can't be successfully constructed
+    # so we use an empty list so that codegen can still import utils
     DEFINITIONS = []
 
 

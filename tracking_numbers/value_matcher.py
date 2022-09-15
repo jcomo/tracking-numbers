@@ -3,6 +3,7 @@ from abc import ABCMeta
 from abc import abstractmethod
 from re import Pattern
 
+from tracking_numbers.helpers.repr import repr_with_args
 from tracking_numbers.types import Spec
 
 
@@ -30,7 +31,7 @@ class ExactValueMatcher(ValueMatcher):
         self.value = value
 
     def __repr__(self):
-        return f"{self.__class__.__name__}(value={repr(self.value)})"
+        return repr_with_args(self, value=self.value)
 
     def matches(self, other: str) -> bool:
         return self.value == other
@@ -41,11 +42,7 @@ class RegexValueMatcher(ValueMatcher):
         self.pattern = re.compile(pattern)
 
     def __repr__(self):
-        return (
-            f"{self.__class__.__name__}("
-            f"pattern=re.compile({repr(self.pattern.pattern)})"
-            f")"
-        )
+        return repr_with_args(self, pattern=self.pattern)
 
     def matches(self, other: str) -> bool:
         return bool(self.pattern.match(other))
