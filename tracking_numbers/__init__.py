@@ -28,3 +28,15 @@ def get_definition(product_name: str) -> Optional[TrackingNumberDefinition]:
             return tn_definition
 
     return None
+
+
+def get_tracking_numbers(number: str) -> list[TrackingNumber]:
+    """
+    Parses the `number` and returns all possible corresponding `TrackingNumber` dataclasses
+    """
+    candidates = []
+    for tn_definition in DEFINITIONS:
+        tracking_number = tn_definition.test(number)
+        if tracking_number and tracking_number.valid:
+            candidates.append(tracking_number)
+    return candidates
