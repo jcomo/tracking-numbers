@@ -20,7 +20,9 @@ DEFINITIONS = [
     TrackingNumberDefinition(
         courier=Courier(code="cdl", name="CDL"),
         product=Product(name="CDL Last Mile Solutions"),
-        number_regex=re.compile("\\s*(?P<PackageId>([0-9a-f]\\s*){10,10})\\s*"),
+        number_regex=re.compile(
+            "\\s*(?=.*[a-z])(?P<PackageId>([0-9a-f]\\s*){10,10})\\s*",
+        ),
         tracking_url_template="https://ship.cdldelivers.com/Xcelerator/Tracking/Tracking?packageitemrefno=%s",
         serial_number_parser=DefaultSerialNumberParser(prepend_if=None),
         checksum_validator=None,
