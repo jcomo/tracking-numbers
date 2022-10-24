@@ -115,9 +115,8 @@ class TrackingNumberDefinition:
             return None
 
         match_data = match.groupdict() if match else {}
-        serial_number = self.serial_number_parser.parse(
-            _remove_whitespace(match_data["SerialNumber"]),
-        )
+        serial_number = self._get_serial_number(match_data)
+        validation_errors = self._get_validation_errors(serial_number, match_data)
 
         return TrackingNumber(
             number=tracking_number,
@@ -125,12 +124,21 @@ class TrackingNumberDefinition:
             product=self.product,
             serial_number=serial_number,
             tracking_url=self.tracking_url(tracking_number),
-            validation_errors=self._get_validation_errors(serial_number, match_data),
+            validation_errors=validation_errors,
         )
+
+    def _get_serial_number(self, match_data: MatchData) -> Optional[SerialNumber]:
+        raw_serial_number = match_data.get("SerialNumber")
+        if raw_serial_number:
+            return self.serial_number_parser.parse(
+                _remove_whitespace(raw_serial_number),
+            )
+
+        return None
 
     def _get_validation_errors(
         self,
-        serial_number: SerialNumber,
+        serial_number: Optional[SerialNumber],
         match_data: MatchData,
     ) -> List[ValidationError]:
         errors: List[ValidationError] = []
@@ -147,11 +155,14 @@ class TrackingNumberDefinition:
 
     def _get_checksum_errors(
         self,
-        serial_number: SerialNumber,
+        serial_number: Optional[SerialNumber],
         match_data: MatchData,
     ) -> Optional[ValidationError]:
         if not self.checksum_validator:
             return None
+
+        if not serial_number:
+            return "checksum", "SerialNumber not found"
 
         check_digit = match_data.get("CheckDigit")
         if not check_digit:
@@ -183,7 +194,7 @@ class TrackingNumberDefinition:
         )
 
         if not matches_any_value:
-            return validation.name, f"Match not found for {group_key}"
+            return validation.name, f"Match not found for {group_key}: {value}"
 
         return None
 

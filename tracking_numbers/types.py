@@ -26,7 +26,7 @@ class TrackingNumber:
     number: str
     courier: Courier
     product: Product
-    serial_number: SerialNumber
+    serial_number: Optional[SerialNumber]
     tracking_url: Optional[str]
     validation_errors: List[ValidationError]
 

@@ -18,6 +18,15 @@ from tracking_numbers.value_matcher import RegexValueMatcher
 
 DEFINITIONS = [
     TrackingNumberDefinition(
+        courier=Courier(code="cdl", name="CDL"),
+        product=Product(name="CDL Last Mile Solutions"),
+        number_regex=re.compile("\\s*(?P<PackageId>([0-9a-f]\\s*){10,10})\\s*"),
+        tracking_url_template="https://ship.cdldelivers.com/Xcelerator/Tracking/Tracking?packageitemrefno=%s",
+        serial_number_parser=DefaultSerialNumberParser(prepend_if=None),
+        checksum_validator=None,
+        additional_validations=[],
+    ),
+    TrackingNumberDefinition(
         courier=Courier(code="dhl", name="DHL"),
         product=Product(name="DHL Express"),
         number_regex=re.compile(
@@ -216,10 +225,10 @@ DEFINITIONS = [
                 name="Service Type",
                 regex_group_name="ServiceType",
                 value_matchers=[
-                    ExactValueMatcher(value="67"),
                     ExactValueMatcher(value="01"),
                     ExactValueMatcher(value="02"),
                     ExactValueMatcher(value="03"),
+                    ExactValueMatcher(value="04"),
                     ExactValueMatcher(value="12"),
                     ExactValueMatcher(value="13"),
                     ExactValueMatcher(value="15"),
@@ -230,6 +239,7 @@ DEFINITIONS = [
                     ExactValueMatcher(value="42"),
                     ExactValueMatcher(value="44"),
                     ExactValueMatcher(value="66"),
+                    ExactValueMatcher(value="67"),
                     ExactValueMatcher(value="72"),
                     ExactValueMatcher(value="78"),
                     ExactValueMatcher(value="90"),
@@ -243,6 +253,17 @@ DEFINITIONS = [
                 ],
             ),
         ],
+    ),
+    TrackingNumberDefinition(
+        courier=Courier(code="ups", name="UPS"),
+        product=Product(name="UPS Mail Innovations - Sequence Number"),
+        number_regex=re.compile(
+            "\\s*8\\s*0\\s*(?P<SerialNumber>([0-9]\\s*){16,16})\\s*",
+        ),
+        tracking_url_template="https://wwwapps.ups.com/WebTracking/track?track=yes&trackNums=%s",
+        serial_number_parser=UPSSerialNumberParser(),
+        checksum_validator=None,
+        additional_validations=[],
     ),
     TrackingNumberDefinition(
         courier=Courier(code="s10", name="S10 International Standard"),
