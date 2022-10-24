@@ -1,4 +1,5 @@
 import os
+from typing import List
 from typing import Optional
 
 from tracking_numbers.definition import TrackingNumberDefinition

@@ -61,6 +61,7 @@ DEFINITIONS = [
         checksum_validator=Mod10(odds_multiplier=1, evens_multiplier=3),
         additional_validations=[
             AdditionalValidation(
+                name="Service Type",
                 regex_group_name="ServiceType",
                 value_matchers=[
                     ExactValueMatcher(value="03"),
@@ -164,6 +165,7 @@ DEFINITIONS = [
         checksum_validator=Mod10(odds_multiplier=1, evens_multiplier=3),
         additional_validations=[
             AdditionalValidation(
+                name="Container Type",
                 regex_group_name="ShippingContainerType",
                 value_matchers=[
                     ExactValueMatcher(value="00"),
@@ -211,8 +213,10 @@ DEFINITIONS = [
         checksum_validator=Mod10(odds_multiplier=2, evens_multiplier=1),
         additional_validations=[
             AdditionalValidation(
+                name="Service Type",
                 regex_group_name="ServiceType",
                 value_matchers=[
+                    ExactValueMatcher(value="67"),
                     ExactValueMatcher(value="01"),
                     ExactValueMatcher(value="02"),
                     ExactValueMatcher(value="03"),
@@ -251,6 +255,7 @@ DEFINITIONS = [
         checksum_validator=S10(),
         additional_validations=[
             AdditionalValidation(
+                name="Service Type",
                 regex_group_name="ServiceType",
                 value_matchers=[
                     RegexValueMatcher(pattern=re.compile("E[A-Z]")),
@@ -268,6 +273,7 @@ DEFINITIONS = [
                 ],
             ),
             AdditionalValidation(
+                name="Courier",
                 regex_group_name="CountryCode",
                 value_matchers=[
                     ExactValueMatcher(value="AF"),

@@ -10,3 +10,10 @@ def test_usps_not_confused_for_dhl():
 
     assert tracking_number is not None
     assert tracking_number.courier.code == "usps"
+
+
+def test_ups_unknown_service_type_67():
+    tracking_number = get_tracking_number("1Z88ER026722447030")
+
+    assert tracking_number is not None
+    assert tracking_number.courier.code == "ups"
