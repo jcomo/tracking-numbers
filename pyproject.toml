@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tracking-numbers"
-version = "0.1.7"
+version = "0.1.8"
 description = "Parse tracking numbers from couriers with no external dependencies"
 authors = ["Jonathan Como <public@jcomo.me>"]
 license = "MIT"
