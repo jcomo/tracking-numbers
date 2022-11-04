@@ -242,6 +242,7 @@ DEFINITIONS = [
                     ExactValueMatcher(value="44"),
                     ExactValueMatcher(value="66"),
                     ExactValueMatcher(value="67"),
+                    ExactValueMatcher(value="68"),
                     ExactValueMatcher(value="72"),
                     ExactValueMatcher(value="78"),
                     ExactValueMatcher(value="90"),
