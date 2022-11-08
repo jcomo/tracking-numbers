@@ -59,6 +59,35 @@ tracking_number = get_tracking_number("1ZY0X1930320121606")
 #    )
 ```
 
+### `get_tracking_numbers(number)`
+
+Parses the `number` and returns all possible corresponding `TrackingNumber` dataclasses
+
+```python
+from tracking_numbers import get_tracking_numbers
+
+tracking_numbers = get_tracking_numbers("93001109246000000072710271")
+
+# => [
+#        TrackingNumber(
+#            valid=True,
+#            number="93001109246000000072710271",
+#            serial_number=[9, 3, 0, 0, 1, 1, 0, 9, 2, 4],
+#            tracking_url="http://www.dhl.com/en/express/tracking.html?brand=DHL&AWB=93001109246000000072710271",
+#            courier=Courier(code="dhl", name="DHL"),
+#            product=Product(name="DHL Express Air"),
+#        ),
+#        TrackingNumber(
+#            valid=True,
+#            number="93001109246000000072710271",
+#            serial_number=[9, 3, 0, 0, 1, 1, 0, 9, 2, 4, 6, 0, 0, 0, 0, 0, 0, 0, 7, 2, 7, 1, 0, 2, 7],
+#            tracking_url="https://tools.usps.com/go/TrackConfirmAction?tLabels=93001109246000000072710271",
+#            courier=Courier(code="usps", name="United States Postal Service"),
+#            product=Product(name="USPS 91"),
+#        )
+# ]
+```
+
 ### `get_definition(product_name)`
 
 Given a product name, gets the `TrackingNumberDefinition` associated.
