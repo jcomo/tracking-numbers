@@ -15,6 +15,7 @@ from tracking_numbers.types import Product
 from tracking_numbers.types import SerialNumber
 from tracking_numbers.types import Spec
 from tracking_numbers.types import TrackingNumber
+from tracking_numbers.types import ValidationError
 from tracking_numbers.value_matcher import ValueMatcher
 
 MatchData = Dict[str, str]
@@ -22,6 +23,7 @@ MatchData = Dict[str, str]
 
 @dataclass
 class AdditionalValidation:
+    name: str
     regex_group_name: str
     value_matchers: List[ValueMatcher]
 
@@ -32,6 +34,7 @@ class AdditionalValidation:
             value_matchers.append(ValueMatcher.from_spec(value_matcher_spec))
 
         return AdditionalValidation(
+            name=spec["name"],
             regex_group_name=spec["regex_group_name"],
             value_matchers=value_matchers,
         )
@@ -107,61 +110,93 @@ class TrackingNumberDefinition:
         )
 
     def test(self, tracking_number: str) -> Optional[TrackingNumber]:
-        match = self.number_regex.match(tracking_number)
+        match = self.number_regex.fullmatch(tracking_number)
         if not match:
             return None
 
         match_data = match.groupdict() if match else {}
-        serial_number = self.serial_number_parser.parse(
-            _remove_whitespace(match_data["SerialNumber"]),
-        )
-
-        passes_checksum = self._passes_checksum(serial_number, match_data)
-        passes_additional_validation = self._passes_additional_validation(match_data)
-        valid = passes_checksum and passes_additional_validation
+        serial_number = self._get_serial_number(match_data)
+        validation_errors = self._get_validation_errors(serial_number, match_data)
 
         return TrackingNumber(
-            valid=valid,
             number=tracking_number,
-            serial_number=serial_number,
-            tracking_url=self.tracking_url(tracking_number),
             courier=self.courier,
             product=self.product,
+            serial_number=serial_number,
+            tracking_url=self.tracking_url(tracking_number),
+            validation_errors=validation_errors,
         )
 
-    def _passes_checksum(
+    def _get_serial_number(self, match_data: MatchData) -> Optional[SerialNumber]:
+        raw_serial_number = match_data.get("SerialNumber")
+        if raw_serial_number:
+            return self.serial_number_parser.parse(
+                _remove_whitespace(raw_serial_number),
+            )
+
+        return None
+
+    def _get_validation_errors(
         self,
-        serial_number: SerialNumber,
+        serial_number: Optional[SerialNumber],
         match_data: MatchData,
-    ) -> bool:
+    ) -> List[ValidationError]:
+        errors: List[ValidationError] = []
+        checksum_error = self._get_checksum_errors(serial_number, match_data)
+        if checksum_error:
+            errors.append(checksum_error)
+
+        for validation in self.additional_validations:
+            additional_error = self._get_additional_error(validation, match_data)
+            if additional_error:
+                errors.append(additional_error)
+
+        return errors
+
+    def _get_checksum_errors(
+        self,
+        serial_number: Optional[SerialNumber],
+        match_data: MatchData,
+    ) -> Optional[ValidationError]:
         if not self.checksum_validator:
-            return True
+            return None
+
+        if not serial_number:
+            return "checksum", "SerialNumber not found"
 
         check_digit = match_data.get("CheckDigit")
         if not check_digit:
-            return False
+            return "checksum", "CheckDigit not found"
 
-        return self.checksum_validator.passes(
+        passes_checksum = self.checksum_validator.passes(
             serial_number=serial_number,
             check_digit=int(check_digit),
         )
 
-    def _passes_additional_validation(self, match_data: MatchData) -> bool:
-        for validation in self.additional_validations:
-            raw_value = match_data.get(validation.regex_group_name)
-            if not raw_value:
-                return False
+        if not passes_checksum:
+            return "checksum", "Checksum validation failed"
 
-            value = _remove_whitespace(raw_value)
-            matches_any = any(
-                value_matcher.matches(value)
-                for value_matcher in validation.value_matchers
-            )
+        return None
 
-            if not matches_any:
-                return False
+    @staticmethod
+    def _get_additional_error(
+        validation: AdditionalValidation,
+        match_data: MatchData,
+    ) -> Optional[ValidationError]:
+        group_key = validation.regex_group_name
+        raw_value = match_data.get(group_key)
+        if not raw_value:
+            return validation.name, f"{group_key} not found"
 
-        return True
+        value = _remove_whitespace(raw_value)
+        matches_any_value = any(
+            value_matcher.matches(value) for value_matcher in validation.value_matchers
+        )
+
+        if not matches_any_value:
+            return validation.name, f"Match not found for {group_key}: {value}"
+
+        return None
 
     def tracking_url(self, tracking_number: str) -> Optional[str]:
         if not self.tracking_url_template:
